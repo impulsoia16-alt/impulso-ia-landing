@@ -3,5 +3,5 @@ Allow: /
 Disallow: /gracias
 Disallow: /dashboard
 
-Sitemap: https://impulso-ia-agency.netlify.app/sitemap.xml
+Sitemap: https://impulsoia16-alt.github.io/impulso-ia-landing/sitemap.xml
 
