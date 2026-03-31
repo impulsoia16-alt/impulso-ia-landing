@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de ROI - IMPULSO IA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a1628;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        /* Navbar */
+        nav {
+            background-color: #0a1628;
+            border-bottom: 1px solid rgba(201, 168, 76, 0.1);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #C9A84C;
+            letter-spacing: 1px;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        nav a:hover {
+            color: #C9A84C;
+        }
+
+        nav a.active {
+            color: #C9A84C;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 4rem 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, #0a1628 0%, #1B3A6B 100%);
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #C9A84C;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: #F5F7FA;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Main Calculator Section */
+        .calculator-section {
+            padding: 4rem 2rem;
+            background-color: #0a1628;
+        }
+
+        .calculator-wrapper {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: start;
+        }
+
+        /* Form Section */
+        .form-section {
+            background-color: #1B3A6B;
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid rgba(201, 168, 76, 0.2);
+        }
+
+        .form-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            color: #C9A84C;
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #F5F7FA;
+            font-size: 0.95rem;
+        }
+
+        .form-group select,
+        .form-group input[type="number"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid rgba(201, 168, 76, 0.3);
+            background-color: #0a1628;
+            color: #ffffff;
+            border-radius: 6px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group select:focus,
+        .form-group input[type="number"]:focus {
+            outline: none;
+            border-color: #C9A84C;
+            box-shadow: 0 0 10px rgba(201, 168, 76, 0.2);
+        }
+
+        .slider-container {
+            position: relative;
+        }
+
+        .slider-value {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .slider-value span {
+            background-color: #C9A84C;
+            color: #0a1628;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #0a1628;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #C9A84C;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(201, 168, 76, 0.5);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #C9A84C;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(201, 168, 76, 0.5);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            width: 24px;
+            height: 24px;
+            box-shadow: 0 0 15px rgba(201, 168, 76, 0.8);
+        }
+
+        input[type="range"]::-moz-range-thumb:hover {
+            width: 24px;
+            height: 24px;
+            box-shadow: 0 0 15px rgba(201, 168, 76, 0.8);
+        }
+
+        /* Toggle Switch */
+        .toggle-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .toggle-switch {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background-color: #0a1628;
+            border: 2px solid rgba(201, 168, 76, 0.3);
+            border-radius: 6px;
+            padding: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            justify-content: center;
+            font-weight: 500;
+        }
+
+        .toggle-switch.active {
+            background-color: #C9A84C;
+            color: #0a1628;
+            border-color: #C9A84C;
+        }
+
+        .toggle-switch input {
+            display: none;
+        }
+
+        /* Results Section */
+        .results-section {
+            background: linear-gradient(135deg, #1B3A6B 0%, #0a1628 100%);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid rgba(201, 168, 76, 0.2);
+            position: sticky;
+            top: 100px;
+        }
+
+        .results-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #C9A84C;
+            text-align: center;
+        }
+
+        .result-item {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background-color: rgba(201, 168, 76, 0.05);
+            border-left: 3px solid #C9A84C;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .result-item.highlight {
+            background-color: rgba(201, 168, 76, 0.1);
+            border: 1px solid rgba(201, 168, 76, 0.3);
+        }
+
+        .result-item label {
+            display: block;
+            font-size: 0.85rem;
+            color: #B0B8C8;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .result-item .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #C9A84C;
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        .result-item .value .currency {
+            font-size: 1rem;
+            color: #B0B8C8;
+        }
+
+        .result-item .value .unit {
+            font-size: 1rem;
+            color: #B0B8C8;
+            font-weight: 400;
+        }
+
+        .result-item.roi .value {
+            font-size: 2.5rem;
+            color: #C9A84C;
+        }
+
+        /* Plan Recommendation */
+        .plan-recommendation {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: rgba(201, 168, 76, 0.15);
+            border: 1px solid #C9A84C;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .plan-recommendation p {
+            font-size: 0.9rem;
+            color: #B0B8C8;
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #C9A84C;
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-price {
+            font-size: 1.1rem;
+            color: #F5F7FA;
+        }
+
+        /* CTA Button */
+        .cta-button {
+            width: 100%;
+            padding: 1rem;
+            background-color: #C9A84C;
+            color: #0a1628;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 2rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .cta-button:hover {
+            background-color: #B8951D;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(201, 168, 76, 0.3);
+        }
+
+        .cta-button:active {
+            transform: translateY(0);
+        }
+
+        /* Footer */
+        footer {
+            background-color: #1B3A6B;
+            border-top: 1px solid rgba(201, 168, 76, 0.1);
+            padding: 2rem;
+            text-align: center;
+            color: #B0B8C8;
+            font-size: 0.9rem;
+        }
+
+        footer .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        footer a {
+            color: #C9A84C;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        footer a:hover {
+            color: #B8951D;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .calculator-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            .results-section {
+                position: static;
+                top: auto;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            nav ul {
+                gap: 1rem;
+                font-size: 0.85rem;
+            }
+
+            .result-item .value {
+                font-size: 1.5rem;
+            }
+
+            .result-item.roi .value {
+                font-size: 1.8rem;
+            }
+        }
+
+        /* Animation for counter updates */
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .updating {
+            animation: pulse 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-RKJ3HKWC0L"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-RKJ3HKWC0L');
+    </script>
+
+    <!-- Navbar -->
+    <nav>
+        <div class="container">
+            <div class="logo">IMPULSO IA</div>
+            <ul>
+                <li><a href="/">Inicio</a></li>
+                <li><a href="/blog/">Blog</a></li>
+                <li><a href="/calculadora-roi/" class="active">Calculadora ROI</a></li>
+                <li><a href="https://wa.me/5491130812610" target="_blank">Contacto</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Calculadora de ROI</h1>
+            <p>Descubrí cuánto puede ahorrar tu negocio con automatización IA</p>
+        </div>
+    </section>
+
+    <!-- Calculator Section -->
+    <section class="calculator-section">
+        <div class="calculator-wrapper">
+            <!-- Form -->
+            <div class="form-section">
+                <h2>Tus datos</h2>
+
+                <div class="form-group">
+                    <label for="rubro">Rubro de tu negocio</label>
+                    <select id="rubro">
+                        <option value="">Selecciona tu rubro</option>
+                        <option value="inmobiliaria">Inmobiliaria</option>
+                        <option value="contable">Estudio Contable</option>
+                        <option value="clinica">Clínica/Consultorio</option>
+                        <option value="comercio">Comercio</option>
+                        <option value="gastronomia">Gastronomía</option>
+                        <option value="servicios">Servicios Profesionales</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <div class="slider-value">
+                        <label for="empleados">Cantidad de empleados</label>
+                        <span id="empleadosValue">5</span>
+                    </div>
+                    <input type="range" id="empleados" min="1" max="50" value="5">
+                </div>
+
+                <div class="form-group">
+                    <div class="slider-value">
+                        <label for="horasRepetitivas">Horas semanales en tareas repetitivas</label>
+                        <span id="horasRepetitivasValue">8</span>
+                    </div>
+                    <input type="range" id="horasRepetitivas" min="1" max="20" value="8">
+                </div>
+
+                <div class="form-group">
+                    <label for="costoHora">Costo hora promedio (ARS)</label>
+                    <input type="number" id="costoHora" value="5000" min="1000" step="500">
+                </div>
+
+                <div class="form-group">
+                    <label>¿Usás WhatsApp para atención al cliente?</label>
+                    <div class="toggle-group">
+                        <label class="toggle-switch active" data-toggle="whatsapp" data-value="si">
+                            <span>Sí</span>
+                            <input type="hidden" value="si">
+                        </label>
+                        <label class="toggle-switch" data-toggle="whatsapp" data-value="no">
+                            <span>No</span>
+                            <input type="hidden" value="no">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>¿Tenés CRM?</label>
+                    <div class="toggle-group">
+                        <label class="toggle-switch" data-toggle="crm" data-value="si">
+                            <span>Sí</span>
+                            <input type="hidden" value="si">
+                        </label>
+                        <label class="toggle-switch active" data-toggle="crm" data-value="no">
+                            <span>No</span>
+                            <input type="hidden" value="no">
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="results-section">
+                <h2>Resultados</h2>
+
+                <div class="result-item">
+                    <label>Costo mensual actual</label>
+                    <div class="value">
+                        <span class="currency">$</span>
+                        <span id="costoMensual">160000</span>
+                        <span class="unit">ARS</span>
+                    </div>
+                </div>
+
+                <div class="result-item highlight">
+                    <label>Ahorro estimado mensual</label>
+                    <div class="value">
+                        <span class="currency">$</span>
+                        <span id="ahorroMensual">120000</span>
+                        <span class="unit">ARS</span>
+                    </div>
+                </div>
+
+                <div class="result-item highlight">
+                    <label>ROI estimado a 6 meses</label>
+                    <div class="value roi">
+                        <span id="roiEstimado">164%</span>
+                    </div>
+                </div>
+
+                <div class="result-item">
+                    <label>Horas liberadas por mes</label>
+                    <div class="value">
+                        <span id="horasLiberadas">160</span>
+                        <span class="unit">horas</span>
+                    </div>
+                </div>
+
+                <div class="plan-recommendation">
+                    <p>Plan recomendado para tu negocio</p>
+                    <div class="plan-name" id="planName">Plan Profesional</div>
+                    <div class="plan-price" id="planPrice">$149.000/mes</div>
+                </div>
+
+                <a href="#" id="ctaWhatsapp" class="cta-button" target="_blank">
+                    <span>💬</span> Quiero mi diagnóstico gratis
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 IMPULSO IA. Todos los derechos reservados.</p>
+            <p style="margin-top: 1rem;">
+                <a href="/terminos/">Términos</a> |
+                <a href="/privacidad/">Privacidad</a> |
+                <a href="https://wa.me/5491130812610" target="_blank">Contacto</a>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Savings ratios by business type
+        const savingsRatio = {
+            inmobiliaria: 0.70,
+            contable: 0.75,
+            clinica: 0.70,
+            comercio: 0.65,
+            gastronomia: 0.60,
+            servicios: 0.70,
+            otro: 0.60
+        };
+
+        // Plan costs in ARS
+        const plans = {
+            starter: { min: 1, max: 5, price: 89000, name: 'Plan Starter' },
+            profesional: { min: 6, max: 15, price: 149000, name: 'Plan Profesional' },
+            enterprise: { min: 16, max: 50, price: 249000, name: 'Plan Enterprise' }
+        };
+
+        // Get form elements
+        const rubroSelect = document.getElementById('rubro');
+        const empleadosSlider = document.getElementById('empleados');
+        const empleadosValue = document.getElementById('empleadosValue');
+        const horasRepetitivasSlider = document.getElementById('horasRepetitivas');
+        const horasRepetitivasValue = document.getElementById('horasRepetitivasValue');
+        const costoHoraInput = document.getElementById('costoHora');
+
+        // Get result elements
+        const costoMensualEl = document.getElementById('costoMensual');
+        const ahorroMensualEl = document.getElementById('ahorroMensual');
+        const roiEstimadoEl = document.getElementById('roiEstimado');
+        const horasLiberadasEl = document.getElementById('horasLiberadas');
+        const planNameEl = document.getElementById('planName');
+        const planPriceEl = document.getElementById('planPrice');
+        const ctaWhatsapp = document.getElementById('ctaWhatsapp');
+
+        // Toggle state
+        let toggleState = {
+            whatsapp: 'si',
+            crm: 'no'
+        };
+
+        // Update slider display values
+        empleadosSlider.addEventListener('input', function() {
+            empleadosValue.textContent = this.value;
+            calculateResults();
+        });
+
+        horasRepetitivasSlider.addEventListener('input', function() {
+            horasRepetitivasValue.textContent = this.value;
+            calculateResults();
+        });
+
+        // Update on rubro change
+        rubroSelect.addEventListener('change', calculateResults);
+
+        // Update on cost input
+        costoHoraInput.addEventListener('input', calculateResults);
+        costoHoraInput.addEventListener('change', function() {
+            if (this.value < 1000) this.value = 1000;
+            calculateResults();
+        });
+
+        // Toggle switches
+        document.querySelectorAll('.toggle-switch').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const toggleType = this.dataset.toggle;
+                const toggleValue = this.dataset.value;
+
+                // Remove active class from siblings
+                document.querySelectorAll(`[data-toggle="${toggleType}"]`).forEach(el => {
+                    el.classList.remove('active');
+                });
+
+                // Add active class to clicked element
+                this.classList.add('active');
+
+                // Update state
+                toggleState[toggleType] = toggleValue;
+                calculateResults();
+            });
+        });
+
+        // Calculate results
+        function calculateResults() {
+            const empleados = parseInt(empleadosSlider.value);
+            const horasRepetitivas = parseInt(horasRepetitivasSlider.value);
+            const costoHora = parseInt(costoHoraInput.value) || 5000;
+            const rubro = rubroSelect.value || 'otro';
+
+            // Calculate current monthly cost (hours × 4 weeks × hourly rate × number of employees)
+            const costoMensual = horasRepetitivas * 4 * costoHora * empleados;
+
+            // Get savings ratio
+            const ratio = savingsRatio[rubro] || 0.60;
+
+            // Calculate estimated savings
+            const ahorroMensual = Math.round(costoMensual * ratio);
+
+            // Get plan price
+            let planPrice = plans.profesional.price;
+            let planName = plans.profesional.name;
+
+            if (empleados >= plans.enterprise.min) {
+                planPrice = plans.enterprise.price;
+                planName = plans.enterprise.name;
+            } else if (empleados >= plans.profesional.min) {
+                planPrice = plans.profesional.price;
+                planName = plans.profesional.name;
+            } else {
+                planPrice = plans.starter.price;
+                planName = plans.starter.name;
+            }
+
+            // Calculate 6-month ROI
+            // ROI = (Total savings - Total plan cost) / Total plan cost * 100
+            const totalSavings6Months = ahorroMensual * 6;
+            const totalPlanCost6Months = planPrice * 6;
+            const roiEstimado = Math.round(((totalSavings6Months - totalPlanCost6Months) / totalPlanCost6Months) * 100);
+
+            // Calculate hours freed per month
+            const horasLiberadas = horasRepetitivas * 4 * empleados;
+
+            // Update DOM with animation
+            updateValue(costoMensualEl, formatNumber(costoMensual));
+            updateValue(ahorroMensualEl, formatNumber(ahorroMensual));
+            updateValue(roiEstimadoEl, roiEstimado + '%');
+            updateValue(horasLiberadasEl, formatNumber(horasLiberadas));
+
+            // Update plan recommendation
+            planNameEl.textContent = planName;
+            planPriceEl.textContent = '$' + formatNumber(planPrice) + '/mes';
+
+            // Update WhatsApp CTA
+            const mensaje = encodeURIComponent(
+                `¡Hola! Soy propietario/a de un negocio de ${rubro} con ${empleados} empleado(s). ` +
+                `Según la calculadora, mi negocio podría ahorrar $${formatNumber(ahorroMensual)}/mes con automatización IA. ` +
+                `Me gustaría obtener mi diagnóstico gratis.`
+            );
+            ctaWhatsapp.href = `https://wa.me/5491130812610?text=${mensaje}`;
+        }
+
+        // Format numbers with thousand separator
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        // Update value with animation
+        function updateValue(element, newValue) {
+            element.classList.remove('updating');
+            void element.offsetWidth; // Trigger reflow
+            element.classList.add('updating');
+            element.textContent = newValue;
+        }
+
+        // Initial calculation
+        calculateResults();
+    </script>
+</body>
+</html>

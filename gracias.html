@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¡Gracias! - IMPULSO IA</title>
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-RKJ3HKWC0L"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-RKJ3HKWC0L');
+    // Track form conversion
+    gtag('event', 'conversion', { 'event_category': 'formulario', 'event_label': 'diagnostico_enviado' });
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1B3A6B;
+      --primary-dark: #122850;
+      --primary-light: #2A5298;
+      --accent: #C9A84C;
+      --accent-dark: #A8872E;
+      --dark: #0A1628;
+      --dark-2: #121F36;
+      --gray: #5A6E8A;
+      --gray-light: #8A9BB5;
+      --light: #F5F7FA;
+      --white: #FFFFFF;
+      --gradient: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      --gradient-accent: linear-gradient(135deg, var(--accent) 0%, #D4B86A 100%);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      color: var(--dark);
+      background: var(--white);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* NAV */
+    nav {
+      width: 100%;
+      padding: 16px 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    nav .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .logo span { color: var(--dark); }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--gray);
+      font-weight: 500;
+      font-size: 15px;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--primary); }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    /* MAIN CONTENT */
+    .thank-you {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 24px;
+      background: linear-gradient(180deg, #EEF1F6 0%, var(--white) 100%);
+    }
+
+    .thank-you-card {
+      text-align: center;
+      max-width: 640px;
+      background: var(--white);
+      border-radius: 20px;
+      padding: 60px 48px;
+      box-shadow: 0 20px 60px rgba(27,58,107,0.1);
+    }
+
+    .check-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 28px;
+      font-size: 40px;
+      color: white;
+      animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes scaleIn {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .thank-you-card h1 {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--dark);
+      margin-bottom: 12px;
+    }
+
+    .thank-you-card h1 .highlight {
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .thank-you-card .subtitle {
+      font-size: 18px;
+      color: var(--gray);
+      margin-bottom: 36px;
+      line-height: 1.7;
+    }
+
+    .steps {
+      text-align: left;
+      margin-bottom: 36px;
+    }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .step:last-child { border-bottom: none; }
+
+    .step-number {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--gradient);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .step-text h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 2px;
+    }
+
+    .step-text p {
+      font-size: 14px;
+      color: var(--gray);
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-whatsapp {
+      background: #25D366;
+      color: white;
+      padding: 14px 28px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 15px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+
+    .btn-whatsapp:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(37,211,102,0.4);
+    }
+
+    .btn-home {
+      background: var(--light);
+      color: var(--dark);
+      padding: 14px 28px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 15px;
+      border: 2px solid #E2E8F0;
+      transition: all 0.3s;
+    }
+
+    .btn-home:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* FOOTER */
+    footer {
+      background: var(--dark);
+      color: rgba(255,255,255,0.6);
+      text-align: center;
+      padding: 24px;
+      font-size: 14px;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    @media (max-width: 640px) {
+      .thank-you-card {
+        padding: 40px 24px;
+      }
+      .thank-you-card h1 {
+        font-size: 28px;
+      }
+      .cta-buttons {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="container">
+      <a href="/" class="logo">IMPULSO <span>IA</span></a>
+      <div class="nav-links">
+        <a href="/#servicios">Servicios</a>
+        <a href="/#precios">Precios</a>
+        <a href="/#contacto">Contacto</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="thank-you">
+    <div class="thank-you-card">
+      <div class="check-icon">✓</div>
+      <h1>¡Recibimos tu <span class="highlight">solicitud</span>!</h1>
+      <p class="subtitle">Gracias por confiar en IMPULSO IA. Nuestro equipo ya fue notificado y te vamos a contactar muy pronto.</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-text">
+            <h3>Revisamos tu caso</h3>
+            <p>Analizamos tu empresa y rubro para preparar recomendaciones personalizadas.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-text">
+            <h3>Te contactamos en &lt;24hs</h3>
+            <p>Coordinamos una reunión de diagnóstico gratuita de 30 minutos.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-text">
+            <h3>Diagnóstico + propuesta</h3>
+            <p>Te mostramos exactamente qué podemos automatizar y cuánto vas a ahorrar.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta-buttons">
+        <a href="https://wa.me/5491130812610?text=Hola!%20Acabo%20de%20completar%20el%20formulario%20en%20la%20web" class="btn-whatsapp">
+          💬 Escribinos por WhatsApp
+        </a>
+        <a href="/" class="btn-home">
+          ← Volver al inicio
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      © 2026 IMPULSO IA — Automatización inteligente para PyMEs argentinas
+    </div>
+  </footer>
+
+</body>
+</html>
