@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /gracias
+Disallow: /dashboard
+
+Sitemap: https://impulso-ia-agency.netlify.app/sitemap.xml
+
