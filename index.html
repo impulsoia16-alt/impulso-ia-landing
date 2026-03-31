@@ -998,7 +998,7 @@
           <div class="testimonial-stars">★★★★★</div>
           <div class="testimonial-text">"Pasamos de responder WhatsApp en 4 horas a 30 segundos. La conversión de leads subió un 40% en el primer mes."</div>
           <div class="testimonial-author">
-            <div class="testimonial-avatar">ML</div>
+            <div class="testimonial-avatar" role="img" aria-label="Avatar de Martín López">ML</div>
             <div>
               <div class="testimonial-name">Martín López</div>
               <div class="testimonial-role">Director — Inmobiliaria Sur</div>
@@ -1009,7 +1009,7 @@
           <div class="testimonial-stars">★★★★★</div>
           <div class="testimonial-text">"Automatizamos el 80% de las consultas repetitivas. Es como tener 2 empleados extra que trabajan 24/7 sin descanso."</div>
           <div class="testimonial-author">
-            <div class="testimonial-avatar">CF</div>
+            <div class="testimonial-avatar" role="img" aria-label="Avatar de Carolina Fernández">CF</div>
             <div>
               <div class="testimonial-name">Carolina Fernández</div>
               <div class="testimonial-role">CEO — TiendaBA E-commerce</div>
@@ -1020,7 +1020,7 @@
           <div class="testimonial-stars">★★★★★</div>
           <div class="testimonial-text">"El reporte semanal que antes nos tardaba 3 horas ahora llega automático los lunes a las 9. No volvemos atrás."</div>
           <div class="testimonial-author">
-            <div class="testimonial-avatar">RG</div>
+            <div class="testimonial-avatar" role="img" aria-label="Avatar de Roberto García">RG</div>
             <div>
               <div class="testimonial-name">Roberto García</div>
               <div class="testimonial-role">Socio — Consultora RG</div>
@@ -1105,7 +1105,9 @@
       <h2 class="section-title">Pedí tu diagnóstico gratuito</h2>
       <p class="section-subtitle">Completá el formulario y te contactamos en menos de 24 horas para agendar tu reunión de diagnóstico sin costo.</p>
       <div class="form-wrapper" style="margin-top: 32px; text-align:left;">
-        <form action="https://formsubmit.co/chuneled@gmail.com" method="POST">
+        <!-- TODO: Replace formsubmit email with hashed version for privacy. FormSubmit supports email hashing.
+             Current email exposure: chuneled@gmail.com. Use their API to obtain hash or implement server-side relay. -->
+        <form action="https://formsubmit.co/chuneled@gmail.com" method="POST" name="diagnostico">
           <input type="hidden" name="_next" value="https://impulsoia16-alt.github.io/impulso-ia-landing/gracias">
           <input type="hidden" name="_subject" value="Nuevo diagnóstico - Impulso IA">
           <input type="hidden" name="_captcha" value="true">
@@ -1203,7 +1205,7 @@
   </footer>
 
   <!-- FLOATING WHATSAPP -->
-  <a href="https://wa.me/5491130812610?text=Hola!%20Quiero%20info%20sobre%20IMPULSO%20IA" class="wa-float" title="Contactar por WhatsApp">
+  <a href="https://wa.me/5491130812610?text=Hola!%20Quiero%20info%20sobre%20IMPULSO%20IA" class="wa-float" title="Contactar por WhatsApp" aria-label="Contactar por WhatsApp">
     💬
   </a>
 
