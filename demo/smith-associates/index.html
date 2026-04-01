@@ -292,9 +292,17 @@
       return null;
     }
 
-    function isAffirmative(msg) {
-      const lower = msg.toLowerCase();
+    // Only short affirmative replies — NOT "I need help with..." which is a case description
+    function isShortAffirmative(msg) {
+      const lower = msg.toLowerCase().trim();
+      const wordCount = lower.split(/\s+/).length;
+      if (wordCount > 4) return false;
       return /\b(yes|yeah|sure|ok|okay|please|absolutely|definitely|yep|yup|let's|go ahead|sounds good)\b/.test(lower);
+    }
+
+    function isNegative(msg) {
+      const lower = msg.toLowerCase().trim();
+      return /\b(no|nope|not now|maybe later|not sure|no thanks|no thank you)\b/.test(lower);
     }
 
     function looksLikeEmail(msg) {
@@ -308,21 +316,21 @@
     function processMessage(msg) {
       const infoKey = isInfoQuestion(msg);
 
-      // Info questions work from any state
-      if (infoKey && state !== "collecting_email" && state !== "collecting_phone") {
+      // Info questions work from any state except data collection
+      if (infoKey && !["collecting_email", "collecting_phone", "collecting_name"].includes(state)) {
         return infoResponses[infoKey];
       }
 
       switch (state) {
         case "idle": {
           const lower = msg.toLowerCase();
-          if (/\b(hi|hello|hey|good morning|good afternoon)\b/.test(lower)) {
+
+          // 1. Greetings (only short messages)
+          if (/\b(hi|hello|hey|good morning|good afternoon)\b/.test(lower) && msg.split(/\s+/).length <= 5) {
             return "Hello! How can I assist you today? I can help with information about our practice areas, schedule a consultation, or answer questions about the firm.";
           }
-          if (isAffirmative(lower) || lower.includes("consultation") || lower.includes("schedule") || lower.includes("appointment") || lower.includes("attorney") || lower.includes("lawyer")) {
-            state = "collecting_name";
-            return "I'd be happy to schedule a consultation. Let me collect a few details. What's your full name?";
-          }
+
+          // 2. Area detection FIRST (before affirmative check)
           const area = detectArea(msg);
           if (area) {
             clientData.area = area.label;
@@ -330,28 +338,32 @@
             state = "area_identified";
             return `I understand — this relates to ${area.label}. Our team in that area handles cases like yours regularly. Would you like to schedule a free initial consultation with one of our ${area.label} attorneys?`;
           }
-          // No keyword match — treat as a case description, infer general area
+
+          // 3. Short affirmative or direct scheduling keywords (only short messages)
+          if (isShortAffirmative(lower) || /\b(consultation|schedule|appointment|attorney|lawyer)\b/.test(lower)) {
+            state = "collecting_name";
+            return "I'd be happy to schedule a consultation. Let me collect a few details. What's your full name?";
+          }
+
+          // 4. Longer message with no keyword — treat as case description
           if (msg.split(/\s+/).length >= 3) {
             clientData.description = msg;
             state = "area_identified";
             return "Thank you for describing your situation. Based on what you've shared, one of our attorneys can review your case in detail. Would you like to schedule a free initial consultation?";
           }
+
+          // 5. Very short unknown message
           return "I can help you with that. Could you describe your legal matter briefly, or tell me which area you need help with? We cover Corporate Law, Litigation, IP, Real Estate, Employment, Personal Injury, Family Law, and Estate Planning.";
         }
 
         case "area_identified": {
-          if (isAffirmative(msg)) {
-            state = "collecting_name";
-            return "Great! Let me collect a few details to set up your consultation. What's your full name?";
-          }
-          const lower = msg.toLowerCase();
-          if (/\b(no|not now|maybe later|not sure)\b/.test(lower)) {
+          if (isNegative(msg)) {
             state = "idle";
             return "No problem at all. Feel free to ask me anything else about the firm, or come back whenever you're ready to schedule.";
           }
-          // If they say something else, assume yes
+          // Any response (yes, or anything else) → advance to data collection
           state = "collecting_name";
-          return "Let me set up a consultation for you. What's your full name?";
+          return "Great! Let me collect a few details to set up your consultation. What's your full name?";
         }
 
         case "collecting_name": {
@@ -385,8 +397,7 @@
         }
 
         case "confirmed": {
-          const lower = msg.toLowerCase();
-          if (/\b(no|nope|that's all|nothing|thanks|thank you|bye|goodbye)\b/.test(lower)) {
+          if (isNegative(msg) || /\b(thanks|thank you|bye|goodbye|that's all|nothing)\b/.test(msg.toLowerCase())) {
             return "Thank you for choosing Smith & Associates. We look forward to assisting you. Have a great day!";
           }
           // Reset for new inquiry

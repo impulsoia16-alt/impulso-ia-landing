@@ -259,7 +259,7 @@
       "societario": { keys: ["societario", "sociedad", "empresa", "srl", "s.a.", "sa ", "fusión", "fusion", "constitución", "constitucion", "compliance", "gobernanza", "corporativo", "mercantil"], label: "Derecho Societario" },
       "laboral": { keys: ["laboral", "despido", "despidieron", "trabajo", "empleado", "indemnización", "indemnizacion", "convenio", "sindicato", "sueldo", "salario", "acoso", "renuncia", "liquidación", "liquidacion", "art "], label: "Derecho Laboral" },
       "tributario": { keys: ["tributario", "impuesto", "fiscal", "afip", "iva", "ganancias", "monotributo", "declaración jurada", "declaracion jurada", "arba", "ingresos brutos", "retención", "retencion"], label: "Derecho Tributario" },
-      "civil": { keys: ["civil", "herencia", "sucesión", "sucesion", "divorcio", "familia", "alimentos", "custodia", "tenencia", "régimen de visitas", "daños", "danos", "accidente", "responsabilidad"], label: "Derecho Civil" },
+      "civil": { keys: ["civil", "herencia", "sucesión", "sucesion", "divorcio", "familia", "alimentos", "custodia", "tenencia", "régimen de visitas", "daños", "danos", "accidente", "responsabilidad", "vecino", "medianera", "ruido"], label: "Derecho Civil" },
       "contable": { keys: ["contable", "contabilidad", "balance", "auditoría", "auditoria", "contador", "contadora", "impositivo", "iibb"], label: "Servicios Contables" },
       "penal": { keys: ["penal", "denuncia", "delito", "estafa", "robo", "amenaza", "querella", "defensa penal"], label: "Derecho Penal" },
       "inmobiliario": { keys: ["inmobiliario", "propiedad", "alquiler", "inquilino", "desalojo", "escritura", "boleto", "compraventa", "hipoteca", "usucapión", "usucapion"], label: "Derecho Inmobiliario" },
@@ -286,20 +286,23 @@
     function isInfoQuestion(msg) {
       const lower = msg.toLowerCase();
       if (lower.includes("costo") || lower.includes("precio") || lower.includes("honorario") || lower.includes("cuánto") || lower.includes("cuanto") || lower.includes("cobran") || lower.includes("vale")) return "costo";
-      if (lower.includes("horario") || lower.includes("atienden") || lower.includes("abierto") || lower.includes("hora")) return "horario";
+      if (lower.includes("horario") || lower.includes("atienden") || lower.includes("abierto")) return "horario";
       if (lower.includes("donde") || lower.includes("dónde") || lower.includes("dirección") || lower.includes("direccion") || lower.includes("oficina") || lower.includes("ubicación") || lower.includes("ubicacion")) return "ubicacion";
-      if (lower.includes("áreas") || lower.includes("areas") || lower.includes("especializ") || lower.includes("qué hacen") || lower.includes("que hacen") || lower.includes("servicios")) return "areas";
+      if (lower.includes("áreas") || lower.includes("areas") || lower.includes("especializ") || lower.includes("qué hacen") || lower.includes("que hacen")) return "areas";
       return null;
     }
 
-    function isAffirmative(msg) {
-      const lower = msg.toLowerCase();
-      return /\b(sí|si|dale|bueno|ok|okay|claro|por favor|porfa|genial|perfecto|vamos|quiero|necesito|obvio|seguro|ya|hagámoslo|hagamoslo)\b/.test(lower);
+    // Only short affirmative replies — NOT "necesito ayuda con..." which is a case description
+    function isShortAffirmative(msg) {
+      const lower = msg.toLowerCase().trim();
+      const wordCount = lower.split(/\s+/).length;
+      if (wordCount > 4) return false;
+      return /\b(sí|si|dale|bueno|ok|okay|claro|porfa|genial|perfecto|vamos|obvio|seguro|hagámoslo|hagamoslo|por favor)\b/.test(lower);
     }
 
     function isNegative(msg) {
-      const lower = msg.toLowerCase();
-      return /\b(no|nah|ahora no|después|despues|todavía no|todavia no|más tarde|mas tarde)\b/.test(lower);
+      const lower = msg.toLowerCase().trim();
+      return /\b(no|nah|nada|ahora no|después|despues|todavía no|todavia no|más tarde|mas tarde|no gracias)\b/.test(lower);
     }
 
     function looksLikeEmail(msg) {
@@ -313,21 +316,21 @@
     function processMessage(msg) {
       const infoKey = isInfoQuestion(msg);
 
-      // Info questions work from any state
-      if (infoKey && state !== "collecting_email" && state !== "collecting_phone") {
+      // Info questions work from any state except data collection
+      if (infoKey && !["collecting_email", "collecting_phone", "collecting_name"].includes(state)) {
         return infoResponses[infoKey];
       }
 
       switch (state) {
         case "idle": {
           const lower = msg.toLowerCase();
-          if (/\b(hola|buen|buenos|buenas|qué tal|que tal|hey)\b/.test(lower)) {
+
+          // 1. Greetings
+          if (/\b(hola|buen|buenos|buenas|qué tal|que tal|hey)\b/.test(lower) && msg.split(/\s+/).length <= 5) {
             return "¡Hola! ¿En qué puedo ayudarte? Puedo darte información sobre nuestras áreas de práctica, agendar una consulta o responder preguntas sobre el estudio.";
           }
-          if (isAffirmative(lower) || lower.includes("consulta") || lower.includes("turno") || lower.includes("cita") || lower.includes("abogado") || lower.includes("abogada") || lower.includes("agendar")) {
-            state = "collecting_name";
-            return "¡Perfecto! Voy a tomarte los datos para agendar una consulta. ¿Cuál es tu nombre completo?";
-          }
+
+          // 2. Area detection FIRST (before affirmative check)
           const area = detectArea(msg);
           if (area) {
             clientData.area = area.label;
@@ -335,27 +338,32 @@
             state = "area_identified";
             return `Entiendo — esto se relaciona con ${area.label}. Nuestro equipo en esa área maneja casos como el tuyo regularmente. ¿Querés agendar una consulta inicial gratuita?`;
           }
-          // No keyword match — treat as case description if long enough
+
+          // 3. Short affirmative or direct scheduling request (only short messages)
+          if (isShortAffirmative(lower) || /\b(consulta|turno|cita|abogado|abogada|agendar)\b/.test(lower)) {
+            state = "collecting_name";
+            return "¡Perfecto! Voy a tomarte los datos para agendar una consulta. ¿Cuál es tu nombre completo?";
+          }
+
+          // 4. Longer message with no keyword — treat as case description
           if (msg.split(/\s+/).length >= 3) {
             clientData.description = msg;
             state = "area_identified";
             return "Gracias por contarme tu situación. Uno de nuestros profesionales puede revisar tu caso en detalle. ¿Querés que te agendemos una consulta inicial gratuita?";
           }
-          return "Puedo ayudarte con eso. ¿Podrías contarme brevemente tu situación, o decirme en qué área necesitás asesoramiento? Cubrimos Societario, Laboral, Tributario, Civil, Penal, Comercial, Inmobiliario y Contable.";
+
+          // 5. Very short unknown message
+          return "Puedo ayudarte. Contame brevemente tu situación o decime en qué área necesitás asesoramiento: Societario, Laboral, Tributario, Civil, Penal, Comercial, Inmobiliario o Contable.";
         }
 
         case "area_identified": {
-          if (isAffirmative(msg)) {
-            state = "collecting_name";
-            return "¡Genial! Necesito algunos datos para coordinar tu consulta. ¿Cuál es tu nombre completo?";
-          }
           if (isNegative(msg)) {
             state = "idle";
             return "Sin problema. Consultame lo que necesites, estoy disponible para ayudarte cuando quieras.";
           }
-          // Anything else — assume they want to proceed
+          // Any response (yes, or anything else) → advance to data collection
           state = "collecting_name";
-          return "Te agendo la consulta. ¿Cuál es tu nombre completo?";
+          return "¡Genial! Necesito algunos datos para coordinar tu consulta. ¿Cuál es tu nombre completo?";
         }
 
         case "collecting_name": {
@@ -367,10 +375,9 @@
         case "collecting_email": {
           clientData.email = msg.trim();
           state = "collecting_phone";
-          if (looksLikeEmail(msg)) {
-            return "Perfecto. ¿Y un teléfono donde podamos contactarte?";
-          }
-          return "Anotado. ¿Y un número de teléfono donde podamos contactarte?";
+          return looksLikeEmail(msg)
+            ? "Perfecto. ¿Y un teléfono donde podamos contactarte?"
+            : "Anotado. ¿Y un número de teléfono donde podamos contactarte?";
         }
 
         case "collecting_phone": {
@@ -386,8 +393,7 @@
         }
 
         case "confirmed": {
-          const lower = msg.toLowerCase();
-          if (/\b(no|nada|eso es todo|gracias|chau|hasta luego|nos vemos)\b/.test(lower)) {
+          if (isNegative(msg)) {
             return "¡Gracias por elegir Vargas & Asociados! Te esperamos pronto. ¡Buen día!";
           }
           // Reset for new inquiry
