@@ -251,29 +251,154 @@
   </footer>
 
   <script>
-    const responses = {
-      "practice areas": "Smith & Associates covers four main practice areas: Corporate Law, Commercial Litigation, Intellectual Property, and Real Estate Transactions. Which area is your inquiry related to?",
-      "corporate": "Our Corporate Law team handles entity formation, M&A, compliance, and governance matters. Would you like to schedule a consultation with one of our corporate attorneys?",
-      "litigation": "Our Litigation team handles commercial disputes, breach of contract, and business torts. Do you have an active dispute or are you looking for preventive counsel?",
-      "consultation": "I can schedule a consultation for you. Initial consultations are 30 minutes. I'll need your name, email, phone number, and a brief description of your legal matter. What's your name?",
+    // State machine: idle → area_identified → collecting_name → collecting_email → collecting_phone → confirmed
+    let state = "idle";
+    let clientData = { area: "", name: "", email: "", phone: "", description: "" };
+
+    const areaKeywords = {
+      "corporate": { keys: ["corporate", "business", "company", "merger", "acquisition", "m&a", "compliance", "governance", "incorporation", "llc", "entity"], label: "Corporate Law" },
+      "litigation": { keys: ["litigation", "lawsuit", "sue", "court", "dispute", "breach", "contract", "damages", "trial", "settlement"], label: "Commercial Litigation" },
+      "ip": { keys: ["intellectual property", "patent", "trademark", "copyright", "ip", "trade secret", "infringement"], label: "Intellectual Property" },
+      "real estate": { keys: ["real estate", "property", "lease", "tenant", "landlord", "closing", "mortgage", "deed", "zoning"], label: "Real Estate" },
+      "employment": { keys: ["fired", "terminated", "wrongful", "discrimination", "harassment", "employment", "worker", "wage", "overtime", "severance"], label: "Employment Law" },
+      "personal injury": { keys: ["accident", "injury", "injured", "car accident", "slip", "fall", "medical malpractice", "negligence", "compensation"], label: "Personal Injury" },
+      "family": { keys: ["divorce", "custody", "child support", "alimony", "prenup", "adoption", "family", "marriage", "separation"], label: "Family Law" },
+      "estate": { keys: ["will", "trust", "estate", "probate", "inheritance", "executor", "beneficiary", "power of attorney"], label: "Estate Planning" }
+    };
+
+    const infoResponses = {
       "cost": "Initial consultation is complimentary for qualified matters. Ongoing representation is discussed during the consultation based on the scope of work. Would you like to schedule one?",
       "hours": "Our offices are open Monday through Friday, 8:30 AM to 6:00 PM EST. However, I'm available 24/7 to answer questions and schedule appointments.",
       "location": "Smith & Associates is located at 450 Park Avenue, Suite 2100, New York, NY. We also offer virtual consultations for clients outside the metro area.",
-      "urgent": "For urgent legal matters, I'll flag your inquiry as priority. Please briefly describe the situation and I'll notify the appropriate attorney immediately.",
-      "default": "Thank you for your question. Let me connect you with the right team. Could you tell me a bit more about your legal matter so I can route you to the appropriate practice area?"
+      "practice areas": "Smith & Associates covers Corporate Law, Commercial Litigation, Intellectual Property, Real Estate, Employment Law, Personal Injury, Family Law, and Estate Planning. Which area is your inquiry related to?"
     };
 
-    function findResponse(msg) {
+    function detectArea(msg) {
       const lower = msg.toLowerCase();
-      for (const [key, val] of Object.entries(responses)) {
-        if (key !== "default" && lower.includes(key)) return val;
+      for (const [area, data] of Object.entries(areaKeywords)) {
+        for (const kw of data.keys) {
+          if (lower.includes(kw)) return { id: area, label: data.label };
+        }
       }
-      if (lower.includes("attorney") || lower.includes("lawyer")) return responses["consultation"];
-      if (lower.includes("price") || lower.includes("fee") || lower.includes("charge")) return responses["cost"];
-      if (lower.includes("office") || lower.includes("where")) return responses["location"];
-      if (lower.includes("emergency") || lower.includes("asap")) return responses["urgent"];
-      if (lower.includes("hello") || lower.includes("hi")) return "Hello! How can I assist you today? I can help with information about our practice areas, schedule a consultation, or answer questions about the firm.";
-      return responses["default"];
+      return null;
+    }
+
+    function isInfoQuestion(msg) {
+      const lower = msg.toLowerCase();
+      if (lower.includes("cost") || lower.includes("price") || lower.includes("fee") || lower.includes("charge") || lower.includes("how much")) return "cost";
+      if (lower.includes("hour") || lower.includes("open") || lower.includes("when") || lower.includes("schedule")) return "hours";
+      if (lower.includes("where") || lower.includes("office") || lower.includes("address") || lower.includes("location")) return "location";
+      if (lower.includes("practice area") || lower.includes("what areas") || lower.includes("specializ")) return "practice areas";
+      return null;
+    }
+
+    function isAffirmative(msg) {
+      const lower = msg.toLowerCase();
+      return /\b(yes|yeah|sure|ok|okay|please|absolutely|definitely|yep|yup|let's|go ahead|sounds good)\b/.test(lower);
+    }
+
+    function looksLikeEmail(msg) {
+      return /[^\s@]+@[^\s@]+\.[^\s@]+/.test(msg.trim());
+    }
+
+    function looksLikePhone(msg) {
+      return /[\d\s\-().+]{7,}/.test(msg.trim());
+    }
+
+    function processMessage(msg) {
+      const infoKey = isInfoQuestion(msg);
+
+      // Info questions work from any state
+      if (infoKey && state !== "collecting_email" && state !== "collecting_phone") {
+        return infoResponses[infoKey];
+      }
+
+      switch (state) {
+        case "idle": {
+          const lower = msg.toLowerCase();
+          if (/\b(hi|hello|hey|good morning|good afternoon)\b/.test(lower)) {
+            return "Hello! How can I assist you today? I can help with information about our practice areas, schedule a consultation, or answer questions about the firm.";
+          }
+          if (isAffirmative(lower) || lower.includes("consultation") || lower.includes("schedule") || lower.includes("appointment") || lower.includes("attorney") || lower.includes("lawyer")) {
+            state = "collecting_name";
+            return "I'd be happy to schedule a consultation. Let me collect a few details. What's your full name?";
+          }
+          const area = detectArea(msg);
+          if (area) {
+            clientData.area = area.label;
+            clientData.description = msg;
+            state = "area_identified";
+            return `I understand — this relates to ${area.label}. Our team in that area handles cases like yours regularly. Would you like to schedule a free initial consultation with one of our ${area.label} attorneys?`;
+          }
+          // No keyword match — treat as a case description, infer general area
+          if (msg.split(/\s+/).length >= 3) {
+            clientData.description = msg;
+            state = "area_identified";
+            return "Thank you for describing your situation. Based on what you've shared, one of our attorneys can review your case in detail. Would you like to schedule a free initial consultation?";
+          }
+          return "I can help you with that. Could you describe your legal matter briefly, or tell me which area you need help with? We cover Corporate Law, Litigation, IP, Real Estate, Employment, Personal Injury, Family Law, and Estate Planning.";
+        }
+
+        case "area_identified": {
+          if (isAffirmative(msg)) {
+            state = "collecting_name";
+            return "Great! Let me collect a few details to set up your consultation. What's your full name?";
+          }
+          const lower = msg.toLowerCase();
+          if (/\b(no|not now|maybe later|not sure)\b/.test(lower)) {
+            state = "idle";
+            return "No problem at all. Feel free to ask me anything else about the firm, or come back whenever you're ready to schedule.";
+          }
+          // If they say something else, assume yes
+          state = "collecting_name";
+          return "Let me set up a consultation for you. What's your full name?";
+        }
+
+        case "collecting_name": {
+          clientData.name = msg.trim();
+          state = "collecting_email";
+          return `Thank you, ${clientData.name}. What's the best email address to reach you?`;
+        }
+
+        case "collecting_email": {
+          if (looksLikeEmail(msg)) {
+            clientData.email = msg.trim();
+            state = "collecting_phone";
+            return "Got it. And a phone number where we can reach you?";
+          }
+          // Accept it anyway — they might have typed it informally
+          clientData.email = msg.trim();
+          state = "collecting_phone";
+          return "Noted. And what's a good phone number to reach you?";
+        }
+
+        case "collecting_phone": {
+          clientData.phone = msg.trim();
+          state = "confirmed";
+          const areaText = clientData.area ? ` regarding ${clientData.area}` : "";
+          return `Perfect! Here's a summary of your consultation request:\n\n` +
+            `Name: ${clientData.name}\n` +
+            `Email: ${clientData.email}\n` +
+            `Phone: ${clientData.phone}\n` +
+            `Matter: ${areaText || " General consultation"}\n\n` +
+            `A member of our team will contact you within 24 hours to confirm your appointment. Is there anything else I can help you with?`;
+        }
+
+        case "confirmed": {
+          const lower = msg.toLowerCase();
+          if (/\b(no|nope|that's all|nothing|thanks|thank you|bye|goodbye)\b/.test(lower)) {
+            return "Thank you for choosing Smith & Associates. We look forward to assisting you. Have a great day!";
+          }
+          // Reset for new inquiry
+          state = "idle";
+          clientData = { area: "", name: "", email: "", phone: "", description: "" };
+          return processMessage(msg);
+        }
+
+        default:
+          state = "idle";
+          return processMessage(msg);
+      }
     }
 
     function addMessage(text, type) {
@@ -303,7 +428,7 @@
       setTimeout(() => {
         const t = document.getElementById('typing');
         if (t) t.remove();
-        addMessage(findResponse(text), 'bot');
+        addMessage(processMessage(text), 'bot');
       }, 800 + Math.random() * 700);
     }
 

@@ -251,35 +251,155 @@
   </footer>
 
   <script>
-    const responses = {
-      "areas": "Vargas & Asociados cubre cuatro áreas principales: Derecho Societario, Derecho Laboral, Derecho Tributario y Derecho Civil y Comercial. ¿Con cuál se relaciona tu consulta?",
-      "societario": "Nuestro equipo de Derecho Societario maneja constitución de sociedades, fusiones, compliance y gobernanza corporativa. ¿Querés agendar una consulta con uno de nuestros abogados?",
-      "laboral": "El área de Derecho Laboral atiende conflictos laborales, despidos, negociaciones colectivas y asesoramiento preventivo. ¿Tenés un caso activo o buscás asesoramiento?",
-      "tributario": "Nuestro equipo tributario asesora en planificación fiscal, impuestos corporativos, comercio exterior y resolución de disputas con AFIP/organismos fiscales. ¿Necesitás una consulta?",
-      "consulta": "Puedo agendarte una consulta. Las consultas iniciales son de 30 minutos. Necesito tu nombre, email, teléfono y una breve descripción de tu caso. ¿Cuál es tu nombre?",
+    // State machine: idle → area_identified → collecting_name → collecting_email → collecting_phone → confirmed
+    let state = "idle";
+    let clientData = { area: "", name: "", email: "", phone: "", description: "" };
+
+    const areaKeywords = {
+      "societario": { keys: ["societario", "sociedad", "empresa", "srl", "s.a.", "sa ", "fusión", "fusion", "constitución", "constitucion", "compliance", "gobernanza", "corporativo", "mercantil"], label: "Derecho Societario" },
+      "laboral": { keys: ["laboral", "despido", "despidieron", "trabajo", "empleado", "indemnización", "indemnizacion", "convenio", "sindicato", "sueldo", "salario", "acoso", "renuncia", "liquidación", "liquidacion", "art "], label: "Derecho Laboral" },
+      "tributario": { keys: ["tributario", "impuesto", "fiscal", "afip", "iva", "ganancias", "monotributo", "declaración jurada", "declaracion jurada", "arba", "ingresos brutos", "retención", "retencion"], label: "Derecho Tributario" },
+      "civil": { keys: ["civil", "herencia", "sucesión", "sucesion", "divorcio", "familia", "alimentos", "custodia", "tenencia", "régimen de visitas", "daños", "danos", "accidente", "responsabilidad"], label: "Derecho Civil" },
+      "contable": { keys: ["contable", "contabilidad", "balance", "auditoría", "auditoria", "contador", "contadora", "impositivo", "iibb"], label: "Servicios Contables" },
+      "penal": { keys: ["penal", "denuncia", "delito", "estafa", "robo", "amenaza", "querella", "defensa penal"], label: "Derecho Penal" },
+      "inmobiliario": { keys: ["inmobiliario", "propiedad", "alquiler", "inquilino", "desalojo", "escritura", "boleto", "compraventa", "hipoteca", "usucapión", "usucapion"], label: "Derecho Inmobiliario" },
+      "comercial": { keys: ["comercial", "contrato", "proveedor", "deuda", "cobranza", "pagaré", "pagare", "cheque", "concurso", "quiebra"], label: "Derecho Comercial" }
+    };
+
+    const infoResponses = {
       "costo": "La consulta inicial es sin cargo para casos calificados. Los honorarios se determinan en la consulta según el alcance del trabajo. ¿Querés agendar una?",
       "horario": "Nuestras oficinas atienden de lunes a viernes de 9:00 a 18:00 hs. Sin embargo, yo estoy disponible las 24 horas para responder consultas y agendar turnos.",
       "ubicacion": "Vargas & Asociados se encuentra en Av. Corrientes 1234, Piso 8, Buenos Aires, Argentina. También ofrecemos consultas virtuales para clientes del interior y del exterior.",
-      "urgente": "Para asuntos legales urgentes, marco tu consulta como prioritaria. Describime brevemente la situación y notifico al profesional correspondiente de inmediato.",
-      "contable": "Nuestro departamento contable ofrece servicios de auditoría, balances, liquidación de sueldos y asesoramiento impositivo para empresas y monotributistas.",
-      "default": "Gracias por tu consulta. Dejame derivarte al equipo adecuado. ¿Podrías contarme un poco más sobre tu caso para orientarte al área correcta?"
+      "areas": "Vargas & Asociados cubre Derecho Societario, Laboral, Tributario, Civil, Penal, Comercial, Inmobiliario y Servicios Contables. ¿Con cuál se relaciona tu consulta?"
     };
 
-    function findResponse(msg) {
+    function detectArea(msg) {
       const lower = msg.toLowerCase();
-      for (const [key, val] of Object.entries(responses)) {
-        if (key !== "default" && lower.includes(key)) return val;
+      for (const [area, data] of Object.entries(areaKeywords)) {
+        for (const kw of data.keys) {
+          if (lower.includes(kw)) return { id: area, label: data.label };
+        }
       }
-      if (lower.includes("abogado") || lower.includes("turno") || lower.includes("cita")) return responses["consulta"];
-      if (lower.includes("precio") || lower.includes("honorario") || lower.includes("cuanto") || lower.includes("cuánto")) return responses["costo"];
-      if (lower.includes("oficina") || lower.includes("donde") || lower.includes("dónde") || lower.includes("dirección")) return responses["ubicacion"];
-      if (lower.includes("emergencia") || lower.includes("urgencia")) return responses["urgente"];
-      if (lower.includes("impuesto") || lower.includes("fiscal") || lower.includes("afip")) return responses["tributario"];
-      if (lower.includes("contador") || lower.includes("contabilidad") || lower.includes("balance") || lower.includes("sueldo")) return responses["contable"];
-      if (lower.includes("sociedad") || lower.includes("empresa") || lower.includes("srl") || lower.includes("s.a")) return responses["societario"];
-      if (lower.includes("despido") || lower.includes("trabajo") || lower.includes("empleado")) return responses["laboral"];
-      if (lower.includes("hola") || lower.includes("buen")) return "¡Hola! ¿En qué puedo ayudarte? Puedo darte información sobre nuestras áreas de práctica, agendar una consulta o responder preguntas sobre el estudio.";
-      return responses["default"];
+      return null;
+    }
+
+    function isInfoQuestion(msg) {
+      const lower = msg.toLowerCase();
+      if (lower.includes("costo") || lower.includes("precio") || lower.includes("honorario") || lower.includes("cuánto") || lower.includes("cuanto") || lower.includes("cobran") || lower.includes("vale")) return "costo";
+      if (lower.includes("horario") || lower.includes("atienden") || lower.includes("abierto") || lower.includes("hora")) return "horario";
+      if (lower.includes("donde") || lower.includes("dónde") || lower.includes("dirección") || lower.includes("direccion") || lower.includes("oficina") || lower.includes("ubicación") || lower.includes("ubicacion")) return "ubicacion";
+      if (lower.includes("áreas") || lower.includes("areas") || lower.includes("especializ") || lower.includes("qué hacen") || lower.includes("que hacen") || lower.includes("servicios")) return "areas";
+      return null;
+    }
+
+    function isAffirmative(msg) {
+      const lower = msg.toLowerCase();
+      return /\b(sí|si|dale|bueno|ok|okay|claro|por favor|porfa|genial|perfecto|vamos|quiero|necesito|obvio|seguro|ya|hagámoslo|hagamoslo)\b/.test(lower);
+    }
+
+    function isNegative(msg) {
+      const lower = msg.toLowerCase();
+      return /\b(no|nah|ahora no|después|despues|todavía no|todavia no|más tarde|mas tarde)\b/.test(lower);
+    }
+
+    function looksLikeEmail(msg) {
+      return /[^\s@]+@[^\s@]+\.[^\s@]+/.test(msg.trim());
+    }
+
+    function looksLikePhone(msg) {
+      return /[\d\s\-().+]{7,}/.test(msg.trim());
+    }
+
+    function processMessage(msg) {
+      const infoKey = isInfoQuestion(msg);
+
+      // Info questions work from any state
+      if (infoKey && state !== "collecting_email" && state !== "collecting_phone") {
+        return infoResponses[infoKey];
+      }
+
+      switch (state) {
+        case "idle": {
+          const lower = msg.toLowerCase();
+          if (/\b(hola|buen|buenos|buenas|qué tal|que tal|hey)\b/.test(lower)) {
+            return "¡Hola! ¿En qué puedo ayudarte? Puedo darte información sobre nuestras áreas de práctica, agendar una consulta o responder preguntas sobre el estudio.";
+          }
+          if (isAffirmative(lower) || lower.includes("consulta") || lower.includes("turno") || lower.includes("cita") || lower.includes("abogado") || lower.includes("abogada") || lower.includes("agendar")) {
+            state = "collecting_name";
+            return "¡Perfecto! Voy a tomarte los datos para agendar una consulta. ¿Cuál es tu nombre completo?";
+          }
+          const area = detectArea(msg);
+          if (area) {
+            clientData.area = area.label;
+            clientData.description = msg;
+            state = "area_identified";
+            return `Entiendo — esto se relaciona con ${area.label}. Nuestro equipo en esa área maneja casos como el tuyo regularmente. ¿Querés agendar una consulta inicial gratuita?`;
+          }
+          // No keyword match — treat as case description if long enough
+          if (msg.split(/\s+/).length >= 3) {
+            clientData.description = msg;
+            state = "area_identified";
+            return "Gracias por contarme tu situación. Uno de nuestros profesionales puede revisar tu caso en detalle. ¿Querés que te agendemos una consulta inicial gratuita?";
+          }
+          return "Puedo ayudarte con eso. ¿Podrías contarme brevemente tu situación, o decirme en qué área necesitás asesoramiento? Cubrimos Societario, Laboral, Tributario, Civil, Penal, Comercial, Inmobiliario y Contable.";
+        }
+
+        case "area_identified": {
+          if (isAffirmative(msg)) {
+            state = "collecting_name";
+            return "¡Genial! Necesito algunos datos para coordinar tu consulta. ¿Cuál es tu nombre completo?";
+          }
+          if (isNegative(msg)) {
+            state = "idle";
+            return "Sin problema. Consultame lo que necesites, estoy disponible para ayudarte cuando quieras.";
+          }
+          // Anything else — assume they want to proceed
+          state = "collecting_name";
+          return "Te agendo la consulta. ¿Cuál es tu nombre completo?";
+        }
+
+        case "collecting_name": {
+          clientData.name = msg.trim();
+          state = "collecting_email";
+          return `Gracias, ${clientData.name}. ¿Cuál es tu email de contacto?`;
+        }
+
+        case "collecting_email": {
+          clientData.email = msg.trim();
+          state = "collecting_phone";
+          if (looksLikeEmail(msg)) {
+            return "Perfecto. ¿Y un teléfono donde podamos contactarte?";
+          }
+          return "Anotado. ¿Y un número de teléfono donde podamos contactarte?";
+        }
+
+        case "collecting_phone": {
+          clientData.phone = msg.trim();
+          state = "confirmed";
+          const areaText = clientData.area ? ` por ${clientData.area}` : "";
+          return `¡Listo! Resumen de tu consulta:\n\n` +
+            `Nombre: ${clientData.name}\n` +
+            `Email: ${clientData.email}\n` +
+            `Teléfono: ${clientData.phone}\n` +
+            `Motivo:${areaText || " Consulta general"}\n\n` +
+            `Un miembro de nuestro equipo te va a contactar dentro de las próximas 24 horas para confirmar el turno. ¿Necesitás algo más?`;
+        }
+
+        case "confirmed": {
+          const lower = msg.toLowerCase();
+          if (/\b(no|nada|eso es todo|gracias|chau|hasta luego|nos vemos)\b/.test(lower)) {
+            return "¡Gracias por elegir Vargas & Asociados! Te esperamos pronto. ¡Buen día!";
+          }
+          // Reset for new inquiry
+          state = "idle";
+          clientData = { area: "", name: "", email: "", phone: "", description: "" };
+          return processMessage(msg);
+        }
+
+        default:
+          state = "idle";
+          return processMessage(msg);
+      }
     }
 
     function addMessage(text, type) {
@@ -309,7 +429,7 @@
       setTimeout(() => {
         const t = document.getElementById('typing');
         if (t) t.remove();
-        addMessage(findResponse(text), 'bot');
+        addMessage(processMessage(text), 'bot');
       }, 800 + Math.random() * 700);
     }
 
